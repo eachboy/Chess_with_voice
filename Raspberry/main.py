@@ -225,7 +225,7 @@ while True:
 
     board.perform_move(move)
     
-    hod_1 = move.to_string()
+    hod_1 = move.to_string() #Ход человека
     print(hod_1)
     hod = "".join(map(str, hod_1))
     to_arduino(hod)
@@ -239,7 +239,7 @@ while True:
             print("Stalemate.")
             break
     
-    hod_1 = ai_move.to_string()
+    hod_1 = ai_move.to_string() #Ход ИИ
     hod = "".join(map(str, hod_1))
     to_arduino(hod)
 
