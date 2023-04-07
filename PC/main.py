@@ -2,71 +2,55 @@ import board, pieces, ai
 import serial
 import speech_recognition as sr
 
+uno = serial.Serial('COM3', 9600)
+mega = serial.Serial('COM5', 9600)
 
-# Использовать, когда команда не отправляется на Arduino
-# hod_p = '11'
-# if __name__ == '__main__':
-#     post = serial.Serial('/dev/ttyUSB0', 9600)
-#     post.flush()
-#     c = bytes(hod_p, 'utf-8')
-#     post.write(c)
-
-figures = [
-    # const, current, eat
-    ["11", "11", "99"],
-    ["21", "21", "99"],
-    ["31", "31", "99"],
-    ["41", "41", "99"],
-    ["51", "51", "99"],
-    ["61", "61", "99"],
-    ["71", "71", "99"],
-    ["81", "81", "99"],
-    ["12", "12", "99"],
-    ["22", "22", "99"],
-    ["32", "32", "99"],
-    ["42", "42", "99"],
-    ["52", "52", "99"],
-    ["62", "62", "99"],
-    ["72", "72", "99"],
-    ["82", "82", "99"],
-
-    ["17", "17", "99"],
-    ["27", "27", "99"],
-    ["37", "37", "99"],
-    ["47", "47", "99"],
-    ["57", "57", "99"],
-    ["67", "67", "99"],
-    ["77", "77", "99"],
-    ["87", "87", "99"],
-    ["18", "18", "99"],
-    ["28", "28", "99"],
-    ["38", "38", "99"],
-    ["48", "48", "99"],
-    ["58", "58", "99"],
-    ["68", "68", "99"],
-    ["78", "78", "99"],
-    ["88", "88", "99"]
-]
-
+def color(n):
+    if n == 1:
+        b = bytes(n, 'utf-8')
+        uno.write(b) 
+    elif n == 2:
+        b = bytes(n, 'utf-8')
+        uno.write(b)  
+    elif n == 3:
+        b = bytes(n, 'utf-8')
+        uno.write(b)  
+    elif n == 4: 
+        # yellow
+        b = bytes(n, 'utf-8')
+        uno.write(b)  
+    elif n == 5:
+        # purple
+        b = bytes(n, 'utf-8')
+        uno.write(b) 
+    elif n == 6:
+        # blink red
+        b = bytes(n, 'utf-8')
+        uno.write(b) 
 
 def speech():
     r = sr.Recognizer()
     with sr.Microphone(device_index=1) as sourse:
         try:
             print('Говорите...')
+            color(2)
             audio = r.listen(sourse, phrase_time_limit=5, timeout=7)
+            color(4)
             qwery = (r.recognize_google(audio, language='ru-RU')).title()
         except:
+            color(6)
             return 'Ошибка ввода. Повторите попытку'
         else:
+            color(4)
             print(qwery)
             word = trans(qwery)
             print(word)
             if len(word)==4: 
+                color(2)
                 return word
             else:
+                color(6)
                 'Ошибка ввода'
-
 
 def trans(word):
     try:
@@ -96,9 +80,8 @@ def trans(word):
             new_mess += slovar.get(mess[i])
         return new_mess
     except:
+        color(6)
         return 'Ошибка ввода'
-
-
 
 def get_user_move():
     print("Пример хода: A2 A4")
@@ -108,21 +91,20 @@ def get_user_move():
 
     try:
         xfrom = letter_to_xpos(move_str[0:1])
-        yfrom = 8 - int(move_str[1:2]) # The board is drawn "upside down", so flip the y coordinate.
+        yfrom = 8 - int(move_str[1:2])
         xto = letter_to_xpos(move_str[2:3])
-        yto = 8 - int(move_str[3:4]) # The board is drawn "upside down", so flip the y coordinate.
+        yto = 8 - int(move_str[3:4])
         return ai.Move(xfrom, yfrom, xto, yto, False)
     except ValueError:
+        color(6)
         print("Неверный формат. Пример: A2 A4")
         return get_user_move()
 
-# Returns a valid move based on the users input.
 def get_valid_user_move(board):
     while True:
         move = get_user_move()
         valid = False
         possible_moves = board.get_possible_moves(pieces.Piece.WHITE)
-        # No possible moves
         if (not possible_moves):
             return 0
 
@@ -135,10 +117,10 @@ def get_valid_user_move(board):
         if (valid):
             break
         else:
+            color(6)
             print("Неверный ход.")
     return move
 
-# Converts a letter (A-H) to the x position on the chess board.
 def letter_to_xpos(letter):
     letter = letter.upper()
     if letter == 'A':
@@ -157,8 +139,14 @@ def letter_to_xpos(letter):
         return 6
     if letter == 'H':
         return 7
-
     raise ValueError("Неверная буква.")
+
+def stop():
+    check = True
+    while check:
+        line = mega.readline().decode('utf-8').rstrip()
+        if line == 'continue':
+            check = False
 
 def to_arduino(hod):
     print("hod",hod)
@@ -167,60 +155,90 @@ def to_arduino(hod):
     next_pos = next_x + next_y
     for i in range(len(figures)):
         if next_pos == figures[i][1]:
-            hod_p = 'e' + next_x + str(int(figures[i][2])//10) + next_y + str(int(figures[i][2])%10)
-            if __name__ == '__main__':
-                post = serial.Serial('/dev/ttyUSB0', 9600)
-                post.flush()
-                c = bytes(hod_p, 'utf-8')
-                post.write(c)
+            hod = 'e' + next_x + str(int(figures[i][2])//10) + next_y + str(int(figures[i][2])%10) + hod
 
-            if __name__ == '__main__':
-                ArAnswer = serial.Serial('/dev/ttyUSB0', 9600)
-                ArAnswer.flush()
-                check = True
-                while check:
-                    line = ArAnswer.readline().decode('utf-8').rstrip()
-                    if line == 'next_turn':
-                        check = False
-
-    if __name__ == '__main__':
-        post = serial.Serial('/dev/ttyUSB0', 9600)
-        post.flush()
-        c = bytes(hod, 'utf-8')
-        post.write(c)
+    b = bytes(hod, 'utf-8')
+    mega.write(b)
 
     print(board.to_string())  
     
-    if __name__ == '__main__':
-        ArAnswer = serial.Serial('/dev/ttyUSB0', 9600)
-        ArAnswer.flush()
-        check = True
-        while check:
-            line = ArAnswer.readline().decode('utf-8').rstrip()
-            if line == 'next_turn' or line == 'Time_up':
-                check = False
-                # if line == 'Time_up':
-                #     for i in range(len(figures)):
-                #         if figures[i][2] != figures[i][1]:
-                #             hod_p = str(figures[i][2]//10) + str(figures[i][1]//10) + str(figures[i][2]%10) + str(figures[i][1]%10) 
-                #             if __name__ == '__main__':
-                #                 post = serial.Serial('/dev/ttyUSB0', 9600)
-                #                 post.flush()
-                #                 c = bytes(hod_p, 'utf-8')
-                #                 post.write(c)
+    check = True
+    while check:
+        line = mega.readline().decode('utf-8').rstrip()
+        # if line == 'stop':
+        #     color(1)
+        #     stop()
+        if line == 'next_turn' or line == 'Time_up':
+            check = False
+            # if line == 'Time_up':
+            #     color(1)
+            #     for i in range(len(figures)):
+            #         if figures[i][2] != figures[i][1]:
+            #             hod_p = str(figures[i][2]//10) + str(figures[i][1]//10) + str(figures[i][2]%10) + str(figures[i][1]%10) 
+            #             b = bytes(hod_p, 'utf-8')
+            #             mega.write(b)
+            #             check = True
+            #             while check:
+            #                 line = mega.readline().decode('utf-8').rstrip()
+            #                 if line == 'next_turn':
+            #                       check = False
 
 
 board = board.Board.new()
 print(board.to_string())
 
+figures = [
+    # const, current, eat
+    ["11", "11", "110"],
+    ["21", "21", "310"],
+    ["31", "31", "29"],
+    ["41", "41", "49"],
+    ["51", "51", "69"],
+    ["61", "61", "89"],
+    ["71", "71", "510"],
+    ["81", "81", "710"],
+    ["12", "12", "91"],
+    ["22", "22", "93"],
+    ["32", "32", "95"],
+    ["42", "42", "97"],
+    ["52", "52", "211"],
+    ["62", "62", "311"],
+    ["72", "72", "511"],
+    ["82", "82", "711"],
+
+    ["17", "17", "92"],
+    ["27", "27", "94"],
+    ["37", "37", "96"],
+    ["47", "47", "98"],
+    ["57", "57", "111"],
+    ["67", "67", "311"],
+    ["77", "77", "511"],
+    ["87", "87", "711"],
+    ["18", "18", "210"],
+    ["28", "28", "410"],
+    ["38", "38", "19"],
+    ["48", "48", "49"],
+    ["58", "58", "69"],
+    ["68", "68", "79"],
+    ["78", "78", "610"],
+    ["88", "88", "810"]
+]
+
+# Использовать, когда команда не отправляется на Arduino
+# hod_p = '11'
+# b = bytes(hod_p, 'utf-8')
+# mega.write(b)
+
+# stop()
+
 while True:
     move = get_valid_user_move(board)
     if (move == 0):
         if (board.is_check(pieces.Piece.WHITE)):
-            print("Checkmate. Black Wins.")
+            print("Шах и мат! Чёрные выиграли!")
             break
         else:
-            print("Stalemate.")
+            print("Ничья")
             break
 
     board.perform_move(move)
@@ -233,10 +251,10 @@ while True:
     ai_move = ai.AI.get_ai_move(board, [])
     if (ai_move == 0):
         if (board.is_check(pieces.Piece.BLACK)):
-            print("Checkmate. White wins.")
+            print("Шах и мат! Белые выиграли!")
             break
         else:
-            print("Stalemate.")
+            print("Ничья")
             break
     
     hod_1 = ai_move.to_string() #Ход ИИ
@@ -244,5 +262,4 @@ while True:
     to_arduino(hod)
 
     board.perform_move(ai_move)
-    
     print(board.to_string())
