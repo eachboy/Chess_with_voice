@@ -181,8 +181,10 @@ int math(int value){
   //Serial.println("math");
   if (value == 0){ 
     if (nowposition_x != current_x){  
+      //Serial.println(nowposition_x,current_x);      
       time_x_coord = (to_figure(0)*Time.forwardTime_x(current_x)); //тут нужен новый метод
-      Serial.println(String(time_x_coord/200)+"time_x_coord");       
+      //Serial.println(time_x_coord);
+      Serial.println(String(Time.forwardTime_x(current_x))+"time_x_coord");       
       axisXControl(30);
       delay(abs(time_x_coord));
       axisXControl(0);
@@ -196,7 +198,8 @@ int math(int value){
 
     if (nowposition_y != current_y) {
       time_y_coord = (to_figure(1)*Time.forwardTime_y(current_y)); //тут нужен новый метод
-      Serial.println(String(time_y_coord/200)+"time_y_coord");
+      Serial.println(String(Time.forwardTime_y(current_y))+"time_y_coord");
+      //Serial.println(time_y_coord);
       axisYControl(30);
       delay(abs(time_y_coord));
       axisYControl(0);
@@ -210,27 +213,28 @@ int math(int value){
     
     if (nowposition_x != eat_current_x){  
       time_x_coord = (to_figure(2)*Time.forwardTime_x(eat_current_x)); //тут нужен новый метод
-      Serial.println(String(time_x_coord/200)+"time_x_coord");       
+      //Serial.println(time_x_coord);
+      Serial.println(String(Time.forwardTime_x(eat_current_x))+"etime_x_coord");       
       axisXControl(30);
       delay(abs(time_x_coord));
       axisXControl(0);
     }
     rotate_x = (eat_next_x - eat_current_x) / abs(eat_next_x - eat_current_x);
-    save(0);
+    save(2);
     return eat_next_x - eat_current_x; 
 
   } else if (value == 3){
 
     if (nowposition_y != eat_current_y) {
       time_y_coord = (to_figure(3)*Time.forwardTime_y(eat_current_y)); //тут нужен новый метод
-      Serial.println(String(time_y_coord/200)+"time_y_coord");
+      Serial.println(String(Time.forwardTime_y(eat_current_y))+"etime_y_coord");
       axisYControl(30);
       delay(abs(time_y_coord));
       axisYControl(0);
     }
 
     rotate_y = (eat_next_y - eat_current_y) / abs(eat_next_y - eat_current_y);
-    save(1);
+    save(3);
     return eat_next_y - eat_current_y;      
   }
 }
@@ -238,8 +242,12 @@ int math(int value){
 void save(int value){
   if (value == 0){
     nowposition_x = next_x;
-  } else{
+  } else if (value == 1){
     nowposition_y = next_y;
+  } else if (value == 2){
+    nowposition_x = eat_next_x;
+  } else if (value == 3){
+    nowposition_y = eat_next_y;
   }
 }
 
@@ -248,7 +256,8 @@ int to_figure(int value) {
   if (value == 0) {
     //Serial.println(current_x - nowposition_x);
     rotate_x = (current_x - nowposition_x) / abs(current_x - nowposition_x);
-    Serial.println(String(current_x-nowposition_x) + "nowx"+String(nowposition_y)+String(current_y));
+    //Serial.println(String(current_x-nowposition_x) + "nowx"+String(nowposition_y)+String(current_y));
+    //Serial.println(current_x - nowposition_x);
     return current_x - nowposition_x;
   } else if (value == 1) {
     //Serial.println(current_y - nowposition_y);
@@ -286,28 +295,29 @@ bool button(){
 int take(int value) {
   //Serial.println("take");
   if (value == 0){
-    hand(50);
+    hand(60);
     motor_z1.write(map(speedValue,-100,100,1000,2000));//way - down
     motor_z2.write(map(speedValue,-100,100,1000,2000));
-    delay(750);
+    delay(900);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
-    hand(-50);
+    hand(-60);
+    delay(500);
     motor_z1.write(map(-speedValue,-100,100,1000,2000));//way - top
     motor_z2.write(map(-speedValue,-100,100,1000,2000));
-    delay(910);
+    delay(1100);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
   } else {
     motor_z1.write(map(speedValue,-100,100,1000,2000));//way - down
     motor_z2.write(map(speedValue,-100,100,1000,2000));
-    delay(750);
+    delay(900);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
     hand(50);
     motor_z1.write(map(-speedValue,-100,100,1000,2000));//way - top
     motor_z2.write(map(-speedValue,-100,100,1000,2000));
-    delay(910);
+    delay(1100);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
     hand(-50);
@@ -321,7 +331,7 @@ int movement(int value){
     next_x = coordinates /100 % 10;     //будущая координата фигуры по x
     current_y = coordinates / 10 % 10;  //текущая координата фигуры по y
     next_y = coordinates % 10;          //будущая координата фигуры по y
-    time_x = (math(0)*365); 
+    time_x = (math(0)*550); 
     time_y = (math(1)*225);   
     take(0); // поднимает фигуру
 
@@ -338,10 +348,10 @@ int movement(int value){
   } else {
     if (coord[3] != "9"){
     coordinates = coord.toInt();
-    eat_current_x = coordinates / long(pow(10,8));
+    eat_current_x = coordinates / long(pow(10,7));
     eat_next_x = coordinates / long(pow(10,7)) % 10;
-    eat_current_y = coordinates /long(pow(10,6)) % 10;
-    eat_next_y = coordinates / int(pow(10,4)) % 100;
+    eat_current_y = coordinates /long(pow(10,5)) % 10;
+    eat_next_y = coordinates / int(pow(10,4)) % 10;
     current_x = coordinates / int(pow(10,3)) % 10;    //текущая координата фигуры по x
     next_x = coordinates / int(pow(10,2)) % 10;    //будущая координата фигуры по x
     current_y = coordinates /int(pow(10,1)) % 10; //текущая координата фигуры по y
@@ -352,12 +362,14 @@ int movement(int value){
     eat_current_y = coordinates /long(pow(10,5)) % 10;
     eat_next_y = coordinates / int(pow(10,4)) % 10;
     current_x = coordinates / int(pow(10,3)) % 10;    //текущая координата фигуры по x
+    //Serial.println(current_x);
     next_x = coordinates / int(pow(10,2)) % 10;    //будущая координата фигуры по x
     current_y = coordinates /int(pow(10,1)) % 10; //текущая координата фигуры по y
     next_y = coordinates % int(pow(10,1));         //будущая координата фигуры по y      
+    //Serial.println(coordinates);
     }
-    time_x = (math(2)*330); 
-    time_y = (math(3)*200);
+    time_x = (math(2)*375); 
+    time_y = (math(3)*250);
     take(0); // поднимает фигуру
 
     axisXControl(30);
@@ -374,9 +386,8 @@ int movement(int value){
     delay(500);
 
     start_pos();   
-
-    time_x = (math(0)*330); 
-    time_y = (math(1)*200);
+    time_x = (math(0)*375); 
+    time_y = (math(1)*225);
     take(0); // поднимает фигуру
 
     axisXControl(30);
@@ -402,21 +413,21 @@ int hand(int value) {
 }
 
 int start_pos(){
-  int time_start_pos = (1 - nowposition_x) * Time.backTime_x(nowposition_x);
+  int time_start_pos = (1 - nowposition_x) * Time.forwardTime_x(nowposition_x);
   rotate_x = (1 - nowposition_x) / abs(1 - nowposition_x);
   axisXControl(30);
-  delay(abs(time_start_pos));
+  delay(abs(time_start_pos)+50);
   axisXControl(0);
-  save(0);
+  nowposition_x = 1;
 
   delay(500);
 
-  time_start_pos = (1 - nowposition_y) * Time.backTime_y(nowposition_y);
+  time_start_pos = (1 - nowposition_y) * Time.forwardTime_y(nowposition_y);
   rotate_y = (1 - nowposition_y) / abs(1 - nowposition_y);
   axisYControl(30);
-  delay(abs(time_start_pos));
+  delay(abs(time_start_pos)+50);
   axisYControl(0);
-  save(1);
+  nowposition_y = 1;
 }
 
 int axisXControl(int value){
