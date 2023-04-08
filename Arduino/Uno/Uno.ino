@@ -25,8 +25,8 @@ void loop(){
   if (Serial.available()) {
     data_t = Serial.readString();
     data = data_t.toInt();
-    color_led(data);
   }
+  color_led(data);
 }
 
 void color_led(int value){
