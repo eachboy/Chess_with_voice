@@ -84,10 +84,13 @@ def trans(word):
         return 'Ошибка ввода'
 
 def get_user_move():
-    print("Пример хода: A2 A4")
-    move_str = input("Ваш ход: ")
-    if move_str == '12345':
-        move_str = speech()
+    check = True
+    while check:
+        line = mega.readline().decode('utf-8').rstrip()
+        if line == 'speech':
+            print("speech...")
+            check = False
+            move_str = speech()
 
     try:
         xfrom = letter_to_xpos(move_str[0:1])
@@ -141,13 +144,6 @@ def letter_to_xpos(letter):
         return 7
     raise ValueError("Неверная буква.")
 
-def stop():
-    check = True
-    while check:
-        line = mega.readline().decode('utf-8').rstrip()
-        if line == 'continue':
-            check = False
-
 def to_arduino(hod):
     print("hod",hod)
     next_x = hod[1]
@@ -156,6 +152,7 @@ def to_arduino(hod):
     for i in range(len(figures)):
         if next_pos == figures[i][1]:
             hod = 'e' + next_x + str(int(figures[i][2])//10) + next_y + str(int(figures[i][2])%10) + hod
+            figures[i][1] = next_pos
 
     b = bytes(hod, 'utf-8')
     mega.write(b)
@@ -165,16 +162,13 @@ def to_arduino(hod):
     check = True
     while check:
         line = mega.readline().decode('utf-8').rstrip()
-        # if line == 'stop':
-        #     color(1)
-        #     stop()
         if line == 'next_turn' or line == 'Time_up':
             check = False
             # if line == 'Time_up':
             #     color(1)
             #     for i in range(len(figures)):
-            #         if figures[i][2] != figures[i][1]:
-            #             hod_p = str(figures[i][2]//10) + str(figures[i][1]//10) + str(figures[i][2]%10) + str(figures[i][1]%10) 
+            #         if figures[i][1] != figures[i][0]:
+            #             hod_p = str(figures[i][1]//10) + str(figures[i][0]//10) + str(figures[i][1]%10) + str(figures[i][0]%10) 
             #             b = bytes(hod_p, 'utf-8')
             #             mega.write(b)
             #             check = True
@@ -182,7 +176,6 @@ def to_arduino(hod):
             #                 line = mega.readline().decode('utf-8').rstrip()
             #                 if line == 'next_turn':
             #                       check = False
-
 
 board = board.Board.new()
 print(board.to_string())
@@ -228,8 +221,6 @@ figures = [
 # hod_p = '11'
 # b = bytes(hod_p, 'utf-8')
 # mega.write(b)
-
-# stop()
 
 while True:
     move = get_valid_user_move(board)

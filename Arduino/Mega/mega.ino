@@ -46,6 +46,7 @@ int current_hod = 0; // 1 - когда кушают фигуру, 0 - обычн
 
 bool button_pos = true;
 bool flag;
+bool speech = true;
 
 #define button_control  11
 #define button_pause  12
@@ -96,8 +97,7 @@ void setup() {
 }
 
 void loop() {
-  if (button()) {  
-    unsignedcycle();   
+  if (button()) {    
     if (millis() - timer > 1000) {
       timer = millis();
       SEC = SEC - 1;
@@ -114,12 +114,15 @@ void loop() {
         } else {
           lcd.print("Time left: 0" + String(MIN) + ":" + String(SEC));
         } 
-        // Serial.println("ready");
-        if (Serial.available()) {
+        if (speech){
+          Serial.println("speech");
+          speech = false;
+        }
+        if (Serial.available()) {          
           coord = Serial.readString();
+          speech = true;         
           if (coord.startsWith("e")) {
             coord.remove(0,1);
-            //Serial.println(coord);
             movement(1);
             start_pos();
           } else{
@@ -164,11 +167,11 @@ void loop() {
       }
     }
    } else {
-      if (nowposition_x != 1 && nowposition_y != 1) {
-        start_pos();
-      }
-      nowposition_x = 1;
-      nowposition_y = 1;
+      Serial.println(canmove);
+      // if (Serial.available()){
+      //   movement(0);
+      //   start_pos();        
+      // }      
       MIN = 2;
       SEC = 0;
       lcd.setCursor(0, 0);
@@ -278,7 +281,7 @@ int to_figure(int value) {
 
 
 bool button(){ 
-  boolean buttonIsUp = digitalRead(button_control);//если передается значение 0 значит кнопка нажата
+  bool buttonIsUp = digitalRead(button_control);//если передается значение 0 значит кнопка нажата
   if (buttonWasUp && !buttonIsUp) {// если кнопка нажата и до этого была разжата
     delay(10);//следовательно это не миссклик и кнопка реально нажата
     buttonIsUp = digitalRead(button_control);//подтверждаем нажатие кнопки
@@ -296,31 +299,31 @@ int take(int value) {
   //Serial.println("take");
   if (value == 0){
     hand(60);
-    motor_z1.write(map(speedValue,-100,100,1000,2000));//way - down
-    motor_z2.write(map(speedValue,-100,100,1000,2000));
-    delay(900);
+    motor_z1.write(map(-speedValue,-100,100,1000,2000));//way - down
+    motor_z2.write(map(-speedValue,-100,100,1000,2000));
+    delay(1500);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
     hand(-60);
     delay(500);
-    motor_z1.write(map(-speedValue,-100,100,1000,2000));//way - top
-    motor_z2.write(map(-speedValue,-100,100,1000,2000));
-    delay(1100);
+    motor_z1.write(map(speedValue,-100,100,1000,2000));//way - top
+    motor_z2.write(map(speedValue,-100,100,1000,2000));
+    delay(1600);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
   } else {
-    motor_z1.write(map(speedValue,-100,100,1000,2000));//way - down
-    motor_z2.write(map(speedValue,-100,100,1000,2000));
-    delay(900);
-    motor_z1.write(map(0,-100,100,1000,2000));
-    motor_z2.write(map(0,-100,100,1000,2000));
-    hand(50);
-    motor_z1.write(map(-speedValue,-100,100,1000,2000));//way - top
+    motor_z1.write(map(-speedValue,-100,100,1000,2000));//way - down
     motor_z2.write(map(-speedValue,-100,100,1000,2000));
-    delay(1100);
+    delay(1300);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
-    hand(-50);
+    hand(60);
+    motor_z1.write(map(speedValue,-100,100,1000,2000));//way - top
+    motor_z2.write(map(speedValue,-100,100,1000,2000));
+    delay(1600);
+    motor_z1.write(map(0,-100,100,1000,2000));
+    motor_z2.write(map(0,-100,100,1000,2000));
+    hand(-60);
   }
 }
 
@@ -371,7 +374,7 @@ int movement(int value){
     time_x = (math(2)*375); 
     time_y = (math(3)*250);
     take(0); // поднимает фигуру
-
+    Serial.println(time_x);
     axisXControl(30);
     delay(abs(time_x));
     axisXControl(0); 
@@ -485,16 +488,16 @@ String transl(int value) {
 bool unsignedcycle(){ 
   while(true){
     //Serial.println("continue");
-    bool buttonIsUp = digitalRead(button_pause);//если передается значение 0 значит кнопка нажата
-    if (buttonWasUp1 && !buttonIsUp) {// если кнопка нажата и до этого была разжата
+    bool buttonIsUp1 = digitalRead(button_pause);//если передается значение 0 значит кнопка нажата
+    if (buttonWasUp1 && !buttonIsUp1) {// если кнопка нажата и до этого была разжата
       delay(10);//следовательно это не миссклик и кнопка реально нажата
-      buttonIsUp = digitalRead(button_pause);//подтверждаем нажатие кнопки
-      if (!buttonIsUp) { 
+      buttonIsUp1 = digitalRead(button_pause);//подтверждаем нажатие кнопки
+      if (!buttonIsUp1) { 
         canmove1 = !canmove1;//включаем или выключаем работу программы
         
       }
     }
-    buttonWasUp1 = buttonIsUp;
+    buttonWasUp1 = buttonIsUp1;
     if (canmove1 == false){
       return;
     } else{
