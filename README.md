@@ -21,7 +21,7 @@ pip install --upgrade google-cloud-speech
 
 ## Требуемые программы
 - Visual Studio Code
-- Arduino IDE 1.8.xx или 2.x.x
+- Arduino IDE 1.8.x или 2.x.x
 
 
 ## Требуемые размеры шахматной доски
