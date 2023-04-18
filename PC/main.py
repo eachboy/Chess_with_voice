@@ -148,11 +148,15 @@ def to_arduino(hod):
     print("hod",hod)
     next_x = hod[1]
     next_y = hod[3]
+    current_pos = hod[0] + hod[1]
     next_pos = next_x + next_y
     for i in range(len(figures)):
         if next_pos == figures[i][1]:
             hod = 'e' + next_x + str(int(figures[i][2])//10) + next_y + str(int(figures[i][2])%10) + hod
-        figures[i][1] = next_pos
+            figures[i][1] = figures[i][2]
+        else:
+            if current_pos == figures[i][1]:
+                figures[i][1] = next_pos
 
     b = bytes(hod, 'utf-8')
     mega.write(b)
