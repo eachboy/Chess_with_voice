@@ -50,7 +50,7 @@ def speech():
                 return word
             else:
                 color(6)
-                'Ошибка ввода'
+                return 'Ошибка ввода'
 
 def trans(word):
     try:
@@ -91,7 +91,6 @@ def get_user_move():
             print("speech...")
             check = False
             move_str = speech()
-
     try:
         xfrom = letter_to_xpos(move_str[0:1])
         yfrom = 8 - int(move_str[1:2])
