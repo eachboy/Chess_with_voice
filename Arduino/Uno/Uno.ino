@@ -43,8 +43,8 @@ void loop(){
   }
 }
 
-void blink_red(int value) {
-    while (value != 0) {
+void blink_red(int yw) {
+    while (yw != 0) {
       analogWrite(R_PIN, 255);
       analogWrite(G_PIN, 0);
       analogWrite(B_PIN, 0);
@@ -53,9 +53,7 @@ void blink_red(int value) {
       analogWrite(G_PIN, 0);
       analogWrite(B_PIN, 0);
       delay(500);
-      value = value - 1;
-    } 
-    if (value == 0) {
-      color_led(1);
+      yw = yw - 1;
     }
+    data = 1;
 }

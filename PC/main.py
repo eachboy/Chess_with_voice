@@ -7,25 +7,25 @@ mega = serial.Serial('COM5', 9600)
 
 def color(n):
     if n == 1:
-        b = bytes(n, 'utf-8')
+        b = bytes(str(n), 'utf-8')
         uno.write(b) 
     elif n == 2:
-        b = bytes(n, 'utf-8')
+        b = bytes(str(n), 'utf-8')
         uno.write(b)  
     elif n == 3:
-        b = bytes(n, 'utf-8')
+        b = bytes(str(n), 'utf-8')
         uno.write(b)  
     elif n == 4: 
         # yellow
-        b = bytes(n, 'utf-8')
+        b = bytes(str(n), 'utf-8')
         uno.write(b)  
     elif n == 5:
         # purple
-        b = bytes(n, 'utf-8')
+        b = bytes(str(n), 'utf-8')
         uno.write(b) 
     elif n == 6:
         # blink red
-        b = bytes(n, 'utf-8')
+        b = bytes(str(n), 'utf-8')
         uno.write(b) 
 
 def speech():
@@ -145,15 +145,20 @@ def letter_to_xpos(letter):
 
 def to_arduino(hod):
     print("hod",hod)
+    
+    eat = True 
     next_x = hod[1]
     next_y = hod[3]
     current_pos = hod[0] + hod[1]
     next_pos = next_x + next_y
     for i in range(len(figures)):
         if next_pos == figures[i][1]:
-            hod = 'e' + next_x + str(int(figures[i][2])//10) + next_y + str(int(figures[i][2])%10) + hod
+            hod = 'e' + next_x + str(figures[i][2])[0] + next_y + str(figures[i][2])[1:] + hod
             figures[i][1] = figures[i][2]
-        else:
+            eat = False
+
+    if eat:
+        for i in range(len(figures)):
             if current_pos == figures[i][1]:
                 figures[i][1] = next_pos
 
