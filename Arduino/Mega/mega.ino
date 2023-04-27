@@ -1,6 +1,6 @@
 #include <Servo.h>
 #include <LiquidCrystal.h>
-#include <chess.h>
+#include "chess.h"
 
 giveTime Time;
 
@@ -41,15 +41,17 @@ int rotate_x;
 int rotate_y;
 String coord;
 String hod;
+bool x;
 
 int current_hod = 0; // 1 - когда кушают фигуру, 0 - обычный ход
 
 bool button_pos = true;
 bool flag;
-bool speech = true;
+
+
 
 #define button_control  11
-#define button_pause  12
+#define button_speech  12
 bool buttonWasUp = true;  
 bool canmove = false; 
 bool buttonWasUp1 = true;  
@@ -70,7 +72,7 @@ Servo claw;
 
 void setup() {
   pinMode(button_control, INPUT_PULLUP);
-  pinMode(button_pause, INPUT_PULLUP);
+  pinMode(button_speech, INPUT_PULLUP);
   pinMode(leftMotorx,OUTPUT);
   pinMode(rightMotorx,OUTPUT);
   pinMode(leftMotorx_1,OUTPUT);
@@ -97,7 +99,12 @@ void setup() {
 }
 
 void loop() {
-  if (button()) {    
+  if (button()) { 
+   if (speech())
+    {
+      Serial.println("speech");
+      canmove1 = 0;
+    }   
     if (millis() - timer > 1000) {
       timer = millis();
       SEC = SEC - 1;
@@ -114,15 +121,12 @@ void loop() {
         } else {
           lcd.print("Time left: 0" + String(MIN) + ":" + String(SEC));
         } 
-        if (speech){
-          Serial.println("speech");
-          speech = false;
-        }
+        //Serial.println(digitalRead(button_speech));
         if (Serial.available()) {          
-          coord = Serial.readString();
-          speech = true;         
+          coord = Serial.readString();        
           if (coord.startsWith("e")) {
-            coord.remove(0,1);
+            x = coord[1];
+            coord.remove(0,2);
             movement(1);
             start_pos();
           } else{
@@ -167,7 +171,7 @@ void loop() {
       }
     }
    } else {
-      Serial.println(canmove);
+      //Serial.println(canmove);
       // if (Serial.available()){
       //   movement(0);
       //   start_pos();        
@@ -202,7 +206,7 @@ int math(int value){
     if (nowposition_y != current_y) {
       time_y_coord = (to_figure(1)*Time.forwardTime_y(current_y)); //тут нужен новый метод
       Serial.println(String(Time.forwardTime_y(current_y))+"time_y_coord");
-      //Serial.println(time_y_coord);
+      //Serial.println(time_y_coord); 
       axisYControl(30);
       delay(abs(time_y_coord));
       axisYControl(0);
@@ -216,6 +220,7 @@ int math(int value){
     
     if (nowposition_x != eat_current_x){  
       time_x_coord = (to_figure(2)*Time.forwardTime_x(eat_current_x)); //тут нужен новый метод
+      
       //Serial.println(time_x_coord);
       Serial.println(String(Time.forwardTime_x(eat_current_x))+"etime_x_coord");       
       axisXControl(30);
@@ -317,6 +322,7 @@ int take(int value) {
     delay(1300);
     motor_z1.write(map(0,-100,100,1000,2000));
     motor_z2.write(map(0,-100,100,1000,2000));
+    delay(500);
     hand(60);
     motor_z1.write(map(speedValue,-100,100,1000,2000));//way - top
     motor_z2.write(map(speedValue,-100,100,1000,2000));
@@ -327,14 +333,14 @@ int take(int value) {
   }
 }
 
-int movement(int value){
+void movement(int value){
   if (value == 0){
     coordinates = coord.toInt();
     current_x = coordinates / 1000;     //текущая координата фигуры по x
     next_x = coordinates /100 % 10;     //будущая координата фигуры по x
     current_y = coordinates / 10 % 10;  //текущая координата фигуры по y
     next_y = coordinates % 10;          //будущая координата фигуры по y
-    time_x = (math(0)*550); 
+    time_x = (math(0)*380); 
     time_y = (math(1)*225);   
     take(0); // поднимает фигуру
 
@@ -349,27 +355,40 @@ int movement(int value){
 
     take(1);// опускает фигуру 
   } else {
-    if (coord[3] != "9"){
+//    String s = String(coord[3]);
+//    int ai = s.toInt();
+    //Serial.println(coord.length());
+    if (x == 0){
     coordinates = coord.toInt();
     eat_current_x = coordinates / long(pow(10,7));
-    eat_next_x = coordinates / long(pow(10,7)) % 10;
-    eat_current_y = coordinates /long(pow(10,5)) % 10;
-    eat_next_y = coordinates / int(pow(10,4)) % 10;
-    current_x = coordinates / int(pow(10,3)) % 10;    //текущая координата фигуры по x
-    next_x = coordinates / int(pow(10,2)) % 10;    //будущая координата фигуры по x
-    current_y = coordinates /int(pow(10,1)) % 10; //текущая координата фигуры по y
-    next_y = coordinates % int(pow(10,1));         //будущая координата фигуры по y
-    } else {
-    eat_current_x = coordinates / long(pow(10,7));
+    Serial.println(eat_current_x);
     eat_next_x = coordinates / long(pow(10,6)) % 10;
+       Serial.println(eat_next_x);
     eat_current_y = coordinates /long(pow(10,5)) % 10;
+       Serial.println(eat_current_y);
     eat_next_y = coordinates / int(pow(10,4)) % 10;
+       Serial.println(eat_next_y);
     current_x = coordinates / int(pow(10,3)) % 10;    //текущая координата фигуры по x
-    //Serial.println(current_x);
+       Serial.println(current_x);
+    next_x = coordinates / int(pow(10,2)) % 10;    //будущая координата фигуры по x
+    Serial.println(next_x);
+    current_y = coordinates /int(pow(10,1)) % 10; //текущая координата фигуры по y
+       Serial.println(current_y);
+    next_y = coordinates % int(pow(10,1));         //будущая координата фигуры по y
+    Serial.println(next_y);
+    
+    } else {
+    coordinates = coord.toInt();
+    eat_current_x = coordinates / long(pow(10,8));
+    eat_next_x = coordinates / long(pow(10,7)) % 10;
+    eat_current_y = coordinates /long(pow(10,6)) % 10;
+    eat_next_y = coordinates / int(pow(10,4)) % 100;
+    current_x = coordinates / int(pow(10,3)) % 10;    //текущая координата фигуры по x
     next_x = coordinates / int(pow(10,2)) % 10;    //будущая координата фигуры по x
     current_y = coordinates /int(pow(10,1)) % 10; //текущая координата фигуры по y
     next_y = coordinates % int(pow(10,1));         //будущая координата фигуры по y      
-    //Serial.println(coordinates);
+    Serial.println(coordinates);
+    Serial.println("////////////////////");
     }
     time_x = (math(2)*375); 
     time_y = (math(3)*250);
@@ -417,18 +436,19 @@ int hand(int value) {
 
 int start_pos(){
   int time_start_pos = (1 - nowposition_x) * Time.forwardTime_x(nowposition_x);
+  Serial.println(1-nowposition_x);
   rotate_x = (1 - nowposition_x) / abs(1 - nowposition_x);
   axisXControl(30);
-  delay(abs(time_start_pos)+50);
+  delay(abs(time_start_pos)+200);
   axisXControl(0);
   nowposition_x = 1;
 
-  delay(500);
+  delay(1000);
 
   time_start_pos = (1 - nowposition_y) * Time.forwardTime_y(nowposition_y);
   rotate_y = (1 - nowposition_y) / abs(1 - nowposition_y);
   axisYControl(30);
-  delay(abs(time_start_pos)+50);
+  delay(abs(time_start_pos)+300);
   axisYControl(0);
   nowposition_y = 1;
 }
@@ -484,29 +504,20 @@ String transl(int value) {
     return "H";
   }
 }
-
-bool unsignedcycle(){ 
-  while(true){
+//
+bool speech(){ 
     //Serial.println("continue");
-    bool buttonIsUp1 = digitalRead(button_pause);//если передается значение 0 значит кнопка нажата
+    bool buttonIsUp1 = digitalRead(button_speech);//если передается значение 0 значит кнопка нажата
     if (buttonWasUp1 && !buttonIsUp1) {// если кнопка нажата и до этого была разжата
       delay(10);//следовательно это не миссклик и кнопка реально нажата
-      buttonIsUp1 = digitalRead(button_pause);//подтверждаем нажатие кнопки
+      buttonIsUp1 = digitalRead(button_speech);//подтверждаем нажатие кнопки
       if (!buttonIsUp1) { 
         canmove1 = !canmove1;//включаем или выключаем работу программы
         
       }
     }
     buttonWasUp1 = buttonIsUp1;
-    if (canmove1 == false){
-      return;
-    } else{
-      Serial.println("stop");
-      lcd.setCursor(0, 3);
-      lcd.print("Game paused");
-      lcd.setCursor(0, 0);
-      allMotorStop(0);
-
-    }
-  }
+//    bool canmove1 = digitalRead(button_speech);
+//    Serial.println(canmove1);
+    return(canmove1); 
 }

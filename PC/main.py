@@ -5,51 +5,32 @@ import speech_recognition as sr
 uno = serial.Serial('COM3', 9600)
 mega = serial.Serial('COM5', 9600)
 
-def color(n):
-    if n == 1:
-        b = bytes(str(n), 'utf-8')
-        uno.write(b) 
-    elif n == 2:
-        b = bytes(str(n), 'utf-8')
-        uno.write(b)  
-    elif n == 3:
-        b = bytes(str(n), 'utf-8')
-        uno.write(b)  
-    elif n == 4: 
-        # yellow
-        b = bytes(str(n), 'utf-8')
-        uno.write(b)  
-    elif n == 5:
-        # purple
-        b = bytes(str(n), 'utf-8')
-        uno.write(b) 
-    elif n == 6:
-        # blink red
-        b = bytes(str(n), 'utf-8')
-        uno.write(b) 
-
 def speech():
     r = sr.Recognizer()
     with sr.Microphone(device_index=1) as sourse:
         try:
             print('Говорите...')
-            color(2)
+
+            b = bytes("2", 'utf-8')
+            uno.write(b) 
+
             audio = r.listen(sourse, phrase_time_limit=5, timeout=7)
-            color(4)
             qwery = (r.recognize_google(audio, language='ru-RU')).title()
         except:
-            color(6)
+            b = bytes("6", 'utf-8')
+            uno.write(b) 
             return 'Ошибка ввода. Повторите попытку'
         else:
-            color(4)
             print(qwery)
             word = trans(qwery)
             print(word)
             if len(word)==4: 
-                color(2)
+                b = bytes("4", 'utf-8')
+                uno.write(b) 
                 return word
             else:
-                color(6)
+                b = bytes("6", 'utf-8')
+                uno.write(b) 
                 return 'Ошибка ввода'
 
 def trans(word):
@@ -80,7 +61,8 @@ def trans(word):
             new_mess += slovar.get(mess[i])
         return new_mess
     except:
-        color(6)
+        b = bytes("6", 'utf-8')
+        uno.write(b) 
         return 'Ошибка ввода'
 
 def get_user_move():
@@ -98,7 +80,6 @@ def get_user_move():
         yto = 8 - int(move_str[3:4])
         return ai.Move(xfrom, yfrom, xto, yto, False)
     except ValueError:
-        color(6)
         print("Неверный формат. Пример: A2 A4")
         return get_user_move()
 
@@ -119,7 +100,8 @@ def get_valid_user_move(board):
         if (valid):
             break
         else:
-            color(6)
+            b = bytes("6", 'utf-8')
+            uno.write(b) 
             print("Неверный ход.")
     return move
 
@@ -153,15 +135,23 @@ def to_arduino(hod):
     next_pos = next_x + next_y
     for i in range(len(figures)):
         if next_pos == figures[i][1]:
-            hod = 'e' + next_x + str(figures[i][2])[0] + next_y + str(figures[i][2])[1:] + hod
+            print(next_pos, figures[i][1], i)
+            if len(figures[i][2]) == 3:
+                hod = 'e1' + next_x + str(figures[i][2])[0] + next_y + str(figures[i][2])[1:] + hod
+            else:
+                hod = 'e0' + next_x + str(figures[i][2])[0] + next_y + str(figures[i][2])[1] + hod
             figures[i][1] = figures[i][2]
+            for y in range(len(figures)):
+                if current_pos == figures[y][1]:
+                    figures[y][1] = next_pos
             eat = False
+            break
 
     if eat:
         for i in range(len(figures)):
             if current_pos == figures[i][1]:
                 figures[i][1] = next_pos
-
+    print(hod)
     b = bytes(hod, 'utf-8')
     mega.write(b)
 

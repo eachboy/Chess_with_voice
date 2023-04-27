@@ -1,4 +1,4 @@
-#include <chess.h>
+#include "chess.h"
 
 int giveTime::forwardTime_x(int current_x){
 	return forward_x[current_x-2];
